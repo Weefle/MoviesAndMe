@@ -7,6 +7,8 @@ export default class Search extends React.Component {
 
     constructor(props){
         super(props)
+        this.page = 0
+        this.totalPages = 0
         this.state = {films:[],
         isLoading: false}
         this.searchedText = ""
@@ -15,10 +17,16 @@ export default class Search extends React.Component {
 _loadFilms(){
 this.setState({isLoading: true})
     if(this.searchedText.length > 0){
-getFilmsFromApiWithSearchedText(this.searchedText).then(data=>this.setState({
-    films:data.results, 
+getFilmsFromApiWithSearchedText(this.searchedText, this.page+1).then(data=>{
+    this.page = data.page
+    this.totalPages = data.totalPages
+    this.setState({
+        films: this.state.films.concat(data.results),
+    //films: [...this.state.films, ...data.results], 
     isLoading: false
-}))
+})
+}
+)
     }
 
 }
@@ -48,6 +56,13 @@ _searchTextInputChanged(text){
                 <FlatList
   data={this.state.films}
   keyExtractor={(item) => item.id.toString()}
+  onEndReachedThreshold={0.5}
+  onEndReached={()=>
+{
+    if(this.page<this.totalPages){
+        this._loadFilms
+    }
+}}
   renderItem={({item}) => <FilmItem film = {item}></FilmItem>}
 />
 {this._displayLoading()}
